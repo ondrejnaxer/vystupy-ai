@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="loading-screen" class="overlay full active" aria-live="polite">
+      <div class="card center">
+        <h1>Loading…</h1>
+        <div class="spinner" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div id="intro-screen" class="overlay full" aria-live="polite">
+      <div class="card intro-card">
+        <h1>Snake</h1>
+        <p>
+          Ovládej hada, sbírej potravu a vyhni se kolizi s vlastním tělem. Cílem je
+          co nejvyšší skóre.
+        </p>
+        <ul>
+          <li><strong>Desktop:</strong> šipky / WASD</li>
+          <li><strong>Pauza:</strong> mezerník</li>
+          <li><strong>Restart:</strong> R</li>
+          <li><strong>Mobil:</strong> swipe gesta</li>
+        </ul>
+
+        <label class="toggle">
+          <input id="wrap-toggle" type="checkbox" />
+          <span>Wrap-around režim</span>
+        </label>
+
+        <button id="start-btn" class="btn" type="button">Start</button>
+      </div>
+    </div>
+
+    <main class="game-shell" id="game-shell" aria-label="Snake hra">
+      <header class="hud">
+        <div class="hud-item">Score: <span id="score">0</span></div>
+        <div class="hud-item">High Score: <span id="high-score">0</span></div>
+        <div class="hud-actions">
+          <button id="pause-btn" class="btn small" type="button">Pause</button>
+          <button id="restart-btn" class="btn small" type="button">Restart</button>
+        </div>
+      </header>
+
+      <section class="board-wrap">
+        <canvas id="game-canvas" width="400" height="400"></canvas>
+
+        <div id="paused-overlay" class="overlay board-overlay" aria-hidden="true">
+          <div class="card center"><h2>Paused</h2></div>
+        </div>
+
+        <div id="gameover-overlay" class="overlay board-overlay" aria-hidden="true">
+          <div class="card center">
+            <h2>Game Over</h2>
+            <p>Score: <span id="gameover-score">0</span></p>
+            <p>High Score: <span id="gameover-high-score">0</span></p>
+            <button id="restart-overlay-btn" class="btn" type="button">Restart</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="hint">Na mobilu táhni prstem po herní ploše (swipe).</p>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
