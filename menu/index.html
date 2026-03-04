@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Vanilla Menu Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="menu-editor">
+        <header class="top-bar">
+            <h2>Navigation Editor</h2>
+            <div class="actions">
+                <button id="btn-add" class="btn btn-primary">+ Add New Item</button>
+                <button id="btn-save" class="btn btn-success">Save Menu</button>
+            </div>
+        </header>
+
+        <ul id="menu-list" class="menu-list">
+            </ul>
+    </div>
+
+    <template id="menu-item-template">
+        <li class="menu-item" draggable="true" data-depth="0">
+            <div class="item-header">
+                <div class="drag-handle">⠿</div>
+                <span class="item-title-display">New Item</span>
+                <button class="btn-expand">▼</button>
+            </div>
+            <div class="item-settings">
+                <div class="input-group">
+                    <label>Navigation Label</label>
+                    <input type="text" class="input-title" value="New Item">
+                </div>
+                <div class="input-group">
+                    <label>URL</label>
+                    <input type="text" class="input-url" placeholder="https://...">
+                </div>
+                <button class="btn-remove">Remove Item</button>
+            </div>
+        </li>
+    </template>
+
+    <script src="script.js"></script>
+</body>
+</html>
