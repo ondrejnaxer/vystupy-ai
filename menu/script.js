@@ -75,9 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (placeholder && placeholder.parentNode) {
             // Apply placeholder's calculated depth to the dropped item
             setDepth(this, parseInt(placeholder.dataset.depth));
-            const isMovingDown =
-                this.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING;
-            menuList.insertBefore(this, isMovingDown ? placeholder.nextSibling : placeholder);
+            menuList.insertBefore(this, placeholder);
             placeholder.remove();
         }
         draggedItem = null;
