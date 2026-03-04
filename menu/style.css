@@ -49,6 +49,9 @@ body {
 .btn-primary:hover { background: #2563eb; }
 .btn-success { background: var(--success-color); color: white; }
 .btn-success:hover { background: #059669; }
+.btn-secondary { background: #e2e8f0; color: var(--text-primary); }
+.btn-secondary:hover:not(:disabled) { background: #cbd5e1; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .menu-list {
     list-style: none;
