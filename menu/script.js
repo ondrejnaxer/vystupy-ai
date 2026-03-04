@@ -7,8 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const template = document.getElementById('menu-item-template');
     
     const INDENT_SIZE = 40; // Must match CSS --indent-size
+    const SCROLL_THRESHOLD = 60; // px from viewport edge to trigger auto-scroll
+    const SCROLL_SPEED = 8;      // px per animation frame
+
     let draggedItem = null;
     let placeholder = null;
+    let dragSubtree = []; // descendants of the dragged item
+    let autoScrollRAF = null;
+    let lastDragY = 0;
 
     // --- Undo/Redo History ---
     const MAX_HISTORY = 50;
@@ -126,9 +132,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Drag and Drop Logic ---
 
+    function getSubtree(item) {
+        const depth = parseInt(item.dataset.depth);
+        const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+        const startIndex = items.indexOf(item);
+        const children = [];
+        for (let i = startIndex + 1; i < items.length; i++) {
+            if (parseInt(items[i].dataset.depth) > depth) {
+                children.push(items[i]);
+            } else {
+                break;
+            }
+        }
+        return children;
+    }
+
+    function startAutoScroll() {
+        if (autoScrollRAF) return;
+        function scrollStep() {
+            const viewportHeight = window.innerHeight;
+            if (lastDragY < SCROLL_THRESHOLD) {
+                window.scrollBy(0, -SCROLL_SPEED);
+                autoScrollRAF = requestAnimationFrame(scrollStep);
+            } else if (lastDragY > viewportHeight - SCROLL_THRESHOLD) {
+                window.scrollBy(0, SCROLL_SPEED);
+                autoScrollRAF = requestAnimationFrame(scrollStep);
+            } else {
+                autoScrollRAF = null; // outside threshold – stop until dragover restarts
+            }
+        }
+        autoScrollRAF = requestAnimationFrame(scrollStep);
+    }
+
+    function stopAutoScroll() {
+        if (autoScrollRAF) {
+            cancelAnimationFrame(autoScrollRAF);
+            autoScrollRAF = null;
+        }
+    }
+
     function handleDragStart(e) {
         draggedItem = this;
-        setTimeout(() => this.classList.add('dragging'), 0);
+        dragSubtree = getSubtree(this);
+        setTimeout(() => {
+            this.classList.add('dragging');
+            dragSubtree.forEach(child => child.classList.add('dragging'));
+        }, 0);
         
         // Create visual placeholder
         placeholder = document.createElement('li');
@@ -142,23 +191,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDragEnd() {
+        stopAutoScroll();
         this.classList.remove('dragging');
+        dragSubtree.forEach(child => child.classList.remove('dragging'));
         if (placeholder && placeholder.parentNode) {
+            const origDepth = parseInt(draggedItem.dataset.depth);
+            const newDepth = parseInt(placeholder.dataset.depth);
+            const depthDelta = newDepth - origDepth;
             // Apply placeholder's calculated depth to the dropped item
-            setDepth(this, parseInt(placeholder.dataset.depth));
+            setDepth(this, newDepth);
             const isMovingDown =
                 this.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING;
             menuList.insertBefore(this, isMovingDown ? placeholder.nextSibling : placeholder);
+            // Re-insert children immediately after parent with adjusted depths
+            let insertAfter = this;
+            dragSubtree.forEach(child => {
+                const childDepth = parseInt(child.dataset.depth);
+                setDepth(child, Math.max(0, childDepth + depthDelta));
+                insertAfter.after(child);
+                insertAfter = child;
+            });
             placeholder.remove();
             pushHistory();
         }
         draggedItem = null;
         placeholder = null;
+        dragSubtree = [];
     }
 
     menuList.addEventListener('dragover', (e) => {
         e.preventDefault();
         if (!draggedItem || !placeholder) return;
+
+        lastDragY = e.clientY;
+        startAutoScroll();
 
         // 1. Vertical Sorting: Find element below cursor
         const afterElement = getDragAfterElement(menuList, e.clientY);
@@ -177,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cannot be deeper than (Previous Item's Depth + 1). Root items are 0.
         let maxDepth = 0;
         let prevItem = placeholder.previousElementSibling;
-        while (prevItem === draggedItem) {
+        while (prevItem && prevItem.classList.contains('dragging')) {
             prevItem = prevItem.previousElementSibling;
         }
         
