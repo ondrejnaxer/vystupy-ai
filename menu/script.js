@@ -2,11 +2,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuList = document.getElementById('menu-list');
     const btnAdd = document.getElementById('btn-add');
     const btnSave = document.getElementById('btn-save');
+    const btnUndo = document.getElementById('btn-undo');
+    const btnRedo = document.getElementById('btn-redo');
     const template = document.getElementById('menu-item-template');
     
     const INDENT_SIZE = 40; // Must match CSS --indent-size
     let draggedItem = null;
     let placeholder = null;
+
+    // --- Undo/Redo History ---
+    const MAX_HISTORY = 50;
+    let historyStack = [];
+    let historyIndex = -1;
+    let savedIndex = -1;
+
+    function getSnapshot() {
+        const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+        return items.map(item => ({
+            id: item.dataset.id,
+            title: item.querySelector('.input-title').value,
+            url: item.querySelector('.input-url').value,
+            depth: parseInt(item.dataset.depth)
+        }));
+    }
+
+    function pushHistory() {
+        historyStack = historyStack.slice(0, historyIndex + 1);
+        historyStack.push(getSnapshot());
+        if (historyStack.length > MAX_HISTORY) {
+            historyStack.shift();
+            if (savedIndex >= 0) savedIndex--;
+        }
+        historyIndex = historyStack.length - 1;
+        updateUndoRedoButtons();
+    }
+
+    function restoreSnapshot(snapshot) {
+        menuList.innerHTML = '';
+        snapshot.forEach(data => {
+            const item = createMenuItem(data.id, data.title, data.url, data.depth);
+            menuList.appendChild(item);
+        });
+        updateUndoRedoButtons();
+    }
+
+    function updateUndoRedoButtons() {
+        btnUndo.disabled = historyIndex <= 0;
+        btnRedo.disabled = historyIndex >= historyStack.length - 1;
+    }
+
+    btnUndo.addEventListener('click', () => {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        restoreSnapshot(historyStack[historyIndex]);
+    });
+
+    btnRedo.addEventListener('click', () => {
+        if (historyIndex >= historyStack.length - 1) return;
+        historyIndex++;
+        restoreSnapshot(historyStack[historyIndex]);
+    });
+
+    // --- Unsaved Changes Warning ---
+    window.addEventListener('beforeunload', (e) => {
+        if (historyIndex !== savedIndex) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
 
     // Load existing data or start empty
     loadMenu();
@@ -16,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = 'item_' + Date.now();
         const newItem = createMenuItem(id, 'New Item', '', 0);
         menuList.appendChild(newItem);
+        pushHistory();
     });
 
     btnSave.addEventListener('click', saveMenu);
@@ -43,8 +107,15 @@ document.addEventListener('DOMContentLoaded', () => {
             li.querySelector('.item-title-display').textContent = e.target.value || '(No Label)';
         });
 
+        // Track title/url changes for undo history
+        li.querySelector('.input-title').addEventListener('change', () => pushHistory());
+        li.querySelector('.input-url').addEventListener('change', () => pushHistory());
+
         // Setup Remove
-        li.querySelector('.btn-remove').addEventListener('click', () => li.remove());
+        li.querySelector('.btn-remove').addEventListener('click', () => {
+            li.remove();
+            pushHistory();
+        });
 
         // Setup Drag Events
         li.addEventListener('dragstart', handleDragStart);
@@ -79,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING;
             menuList.insertBefore(this, isMovingDown ? placeholder.nextSibling : placeholder);
             placeholder.remove();
+            pushHistory();
         }
         draggedItem = null;
         placeholder = null;
@@ -165,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         localStorage.setItem('customMenuData', JSON.stringify(menuData));
+        savedIndex = historyIndex;
         
         // Quick visual feedback
         const originalText = btnSave.textContent;
@@ -189,5 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Failed to parse menu data", e);
             }
         }
+        pushHistory();
+        savedIndex = historyIndex; // Loaded state matches what's in localStorage
     }
 });
