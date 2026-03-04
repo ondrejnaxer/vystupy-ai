@@ -75,7 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (placeholder && placeholder.parentNode) {
             // Apply placeholder's calculated depth to the dropped item
             setDepth(this, parseInt(placeholder.dataset.depth));
-            menuList.insertBefore(this, placeholder);
+            const isMovingDown =
+                this.compareDocumentPosition(placeholder) & Node.DOCUMENT_POSITION_FOLLOWING;
+            menuList.insertBefore(this, isMovingDown ? placeholder.nextSibling : placeholder);
             placeholder.remove();
         }
         draggedItem = null;
@@ -102,9 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // 3. Apply WordPress Constraints: 
         // Cannot be deeper than (Previous Item's Depth + 1). Root items are 0.
         let maxDepth = 0;
-        const prevItem = placeholder.previousElementSibling;
+        let prevItem = placeholder.previousElementSibling;
+        while (prevItem === draggedItem) {
+            prevItem = prevItem.previousElementSibling;
+        }
         
-        if (prevItem && prevItem !== draggedItem) {
+        if (prevItem) {
             maxDepth = parseInt(prevItem.dataset.depth) + 1;
         }
 
