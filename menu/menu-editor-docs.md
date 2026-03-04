@@ -41,7 +41,7 @@ WordPress-style nesting relies on mouse offset tracking and strict constraints:
 * **Constraints enforced by the script:**
     1. An item cannot be indented more than one level deeper than the nearest non-dragged item above the placeholder ($MaxDepth = Depth_{prev} + 1$).
     2. The first item in the menu list is strictly a root item (Depth 0).
-    3. When dropping below the original dragged position, the final insertion point is corrected so the item is actually moved (instead of snapping back to its original order).
+    3. When the placeholder is positioned immediately below the dragged item, the `dragover` logic skips the dragged item when determining the previous sibling, allowing valid depth/indentation changes in that position.
 * **Visual Feedback:** The placeholder element dynamically adjusts its left margin to reflect the allowed depth before the user drops the item.
 
 ---
