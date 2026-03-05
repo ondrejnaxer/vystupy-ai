@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const INDENT_SIZE = 40; // Must match CSS --indent-size
     const SCROLL_THRESHOLD = 60; // px from viewport edge to trigger auto-scroll
     const SCROLL_SPEED = 8;      // px per animation frame
+    const DRAG_THRESHOLD = 5;    // px of movement before a mousedown becomes a drag
 
     let draggedItem = null;
     let placeholder = null;
@@ -171,9 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Dragging is enabled from anywhere on the item header.
         // A small movement threshold distinguishes a click (toggle expand)
         // from a drag (initiate drag-and-drop).
-        const DRAG_THRESHOLD = 5;
         const itemHeader = li.querySelector('.item-header');
         itemHeader.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
             if (e.target.closest('button')) return;
             const startX = e.clientX;
             const startY = e.clientY;
