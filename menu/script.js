@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDragging = false;
     let dragStartCandidate = null;
 
-    // --- Undo/Redo History ---
+    // --- Historie zpět/znovu ---
     const MAX_HISTORY = 50;
     let historyStack = [];
     let historyIndex = -1;
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         restoreSnapshot(historyStack[historyIndex]);
     });
 
-    // --- Unsaved Changes Warning ---
+    // --- Upozornění na neuložené změny ---
     window.addEventListener('beforeunload', (e) => {
         if (isDirty()) {
             e.preventDefault();
@@ -104,13 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Load existing data or start empty
+    // Načíst existující data nebo začít s prázdným menu
     loadMenu();
 
-    // --- UI Interactions ---
+    // --- Interakce UI ---
     btnAdd.addEventListener('click', () => {
         const id = generateId();
-        const newItem = createMenuItem(id, 'New Item', '', 0);
+        const newItem = createMenuItem(id, 'Nová položka', '', 0);
         menuList.appendChild(newItem);
         pushHistory();
     });
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         li.querySelector('.input-title').value = title;
         li.querySelector('.input-url').value = url;
 
-        // Setup Accordion Toggle
+        // Přepínání rozbalení nastavení
         li.querySelector('.btn-expand').addEventListener('click', (e) => {
             if (isDragging) return;
             const settings = li.querySelector('.item-settings');
@@ -137,22 +137,22 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.textContent = settings.classList.contains('expanded') ? '▲' : '▼';
         });
 
-        // Setup Live Title Update
+        // Živá aktualizace názvu
         li.querySelector('.input-title').addEventListener('input', (e) => {
-            li.querySelector('.item-title-display').textContent = e.target.value || '(No Label)';
+            li.querySelector('.item-title-display').textContent = e.target.value || '(Bez názvu)';
         });
 
-        // Track title/url changes for undo history
+        // Sledování změn názvu/URL pro historii
         li.querySelector('.input-title').addEventListener('change', () => pushHistory());
         li.querySelector('.input-url').addEventListener('change', () => pushHistory());
 
-        // Setup Remove
+        // Odebrání položky
         li.querySelector('.btn-remove').addEventListener('click', () => {
             li.remove();
             pushHistory();
         });
 
-        // Setup Duplicate
+        // Duplikování položky
         li.querySelector('.btn-duplicate').addEventListener('click', () => {
             const dupTitle = li.querySelector('.input-title').value;
             const dupUrl = li.querySelector('.input-url').value;
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 settings.classList.contains('expanded') ? '▲' : '▼';
         });
 
-        // Setup Quick Navigation
+        // Rychlá navigace položky
         li.querySelector('.btn-move-up').addEventListener('click', () => {
             const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
             const index = items.indexOf(li);
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const lastIndex = items.indexOf(lastItem);
             if (lastIndex === items.length - 1) return;
             const newPrevItem = items[lastIndex + 1];
-            // Move after the entire newPrevItem subtree to avoid splitting it
+            // Přesunout za celý podstrom předchozí položky, aby se nerozdělil
             const newPrevSubtree = getSubtree(newPrevItem);
             const newPrevBlockLast = newPrevSubtree.length > 0 ? newPrevSubtree[newPrevSubtree.length - 1] : newPrevItem;
             newPrevBlockLast.after(li, ...subtree);
@@ -514,8 +514,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const offsetX = e.clientX - listRect.left;
         let requestedDepth = Math.floor(offsetX / INDENT_SIZE);
         
-        // 3. Apply WordPress Constraints: 
-        // Cannot be deeper than (Previous Item's Depth + 1). Root items are 0.
+        // 3. Použít omezení zanoření: 
+        // Nelze jít hlouběji než (úroveň předchozí položky + 1). Kořen je úroveň 0.
         let maxDepth = 0;
         let prevItem = placeholder.previousElementSibling;
         while (prevItem && prevItem.classList.contains('dragging')) {
@@ -585,11 +585,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveMenu() {
         const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
         const menuData = items.map((item, index) => {
-            // Calculate parent based on depth logic
+            // Vypočítat rodiče podle úrovně zanoření
             const depth = parseInt(item.dataset.depth);
             let parentId = null;
             
-            // Search upwards for the nearest item with a lesser depth
+            // Hledat směrem nahoru nejbližší položku s menší úrovní
             for (let i = index - 1; i >= 0; i--) {
                 if (parseInt(items[i].dataset.depth) < depth) {
                     parentId = items[i].dataset.id;
@@ -611,9 +611,9 @@ document.addEventListener('DOMContentLoaded', () => {
         savedIndex = historyIndex;
         updateSaveButton();
         
-        // Quick visual feedback
+        // Krátká vizuální zpětná vazba
         const originalText = btnSave.textContent;
-        btnSave.textContent = 'Saved!';
+        btnSave.textContent = 'Uloženo!';
         btnSave.style.background = '#047857';
         setTimeout(() => {
             btnSave.textContent = originalText;
@@ -631,11 +631,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     menuList.appendChild(item);
                 });
             } catch (e) {
-                console.error("Failed to parse menu data", e);
+                console.error("Nepodařilo se načíst data menu", e);
             }
         }
         pushHistory();
-        savedIndex = historyIndex; // Loaded state matches what's in localStorage
+        savedIndex = historyIndex; // Načtený stav odpovídá datům v localStorage
         updateSaveButton();
     }
 });
