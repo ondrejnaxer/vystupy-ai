@@ -178,13 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             items[blockStartIndex].before(li, ...subtree);
 
-            // After the move, the displaced item (formerly items[index-1]) now
+            // After the move, the displaced block root (items[blockStartIndex]) now
             // follows the moved block. Clamp it and its subtree so that
-            // depth <= newPrevItem.depth + 1 (where newPrevItem is now the last
-            // node of the moved block).
+            // depth <= lastMovedNode.depth + 1.
             const lastMovedNode = subtree.length > 0 ? subtree[subtree.length - 1] : li;
             const lastMovedDepth = parseInt(lastMovedNode.dataset.depth, 10);
-            const displaced = items[index - 1];
+            const displaced = items[blockStartIndex];
             const displacedDepth = parseInt(displaced.dataset.depth, 10);
             if (displacedDepth > lastMovedDepth + 1) {
                 const displacedDelta = displacedDepth - (lastMovedDepth + 1);
