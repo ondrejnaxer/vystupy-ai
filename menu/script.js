@@ -146,7 +146,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
             const index = items.indexOf(li);
             if (index === 0) return;
+
             const subtree = getSubtree(li);
+
+            // Determine the new previous item after moving up
+            const newPrevItem = index > 1 ? items[index - 2] : null;
+            const allowedDepth = newPrevItem
+                ? parseInt(newPrevItem.dataset.depth, 10) + 1
+                : 0;
+
+            const currentDepth = parseInt(li.dataset.depth, 10);
+
+            // Clamp the depth of the moved item and its subtree so that
+            // depth <= newPrevItem.depth + 1 (or 0 if moved to the top)
+            if (currentDepth > allowedDepth) {
+                const depthDelta = currentDepth - allowedDepth;
+                const movedNodes = [li, ...subtree];
+                movedNodes.forEach(node => {
+                    const nodeDepth = parseInt(node.dataset.depth, 10);
+                    setDepth(node, Math.max(0, nodeDepth - depthDelta));
+                });
+            }
+
             items[index - 1].before(li, ...subtree);
             pushHistory();
         });
@@ -157,33 +178,107 @@ document.addEventListener('DOMContentLoaded', () => {
             const lastItem = subtree.length > 0 ? subtree[subtree.length - 1] : li;
             const lastIndex = items.indexOf(lastItem);
             if (lastIndex === items.length - 1) return;
-            items[lastIndex + 1].after(li, ...subtree);
+            const newPrevItem = items[lastIndex + 1];
+            newPrevItem.after(li, ...subtree);
+            const newPrevDepth = parseInt(newPrevItem.dataset.depth, 10);
+            const currentDepth = parseInt(li.dataset.depth, 10);
+            const maxAllowedDepth = newPrevDepth + 1;
+            if (currentDepth > maxAllowedDepth) {
+                const depthDelta = currentDepth - maxAllowedDepth;
+                const movedNodes = [li, ...subtree];
+                movedNodes.forEach(node => {
+                    const nodeDepth = parseInt(node.dataset.depth, 10);
+                    setDepth(node, Math.max(0, nodeDepth - depthDelta));
+                });
+            }
             pushHistory();
         });
 
         li.querySelector('.btn-increase-level').addEventListener('click', () => {
-            const currentDepth = parseInt(li.dataset.depth);
+            const currentDepth = parseInt(li.dataset.depth, 10);
             const maxDepth = getMaxDepth(li);
             if (currentDepth >= maxDepth) return;
-            setDepth(li, currentDepth + 1);
+            const depthDelta = 1;
+            const subtree = getSubtree(li);
+            const itemsToUpdate = [li, ...subtree];
+            itemsToUpdate.forEach((item) => {
+                const itemDepth = parseInt(item.dataset.depth, 10);
+                setDepth(item, itemDepth + depthDelta);
+            });
             pushHistory();
         });
 
         li.querySelector('.btn-decrease-level').addEventListener('click', () => {
-            const currentDepth = parseInt(li.dataset.depth);
+            const currentDepth = parseInt(li.dataset.depth, 10);
             if (currentDepth === 0) return;
-            setDepth(li, currentDepth - 1);
+            const depthDelta = -1;
+            const subtree = getSubtree(li);
+            const itemsToUpdate = [li, ...subtree];
+            itemsToUpdate.forEach((item) => {
+                const itemDepth = parseInt(item.dataset.depth, 10);
+                setDepth(item, itemDepth + depthDelta);
+            });
             pushHistory();
         });
 
         li.querySelector('.btn-to-top').addEventListener('click', () => {
             const subtree = getSubtree(li);
+            const movedNodes = [li, ...subtree];
+            const currentDepth = parseInt(li.dataset.depth, 10);
+
+            // When moving to the top, the first item must be at depth 0.
+            if (currentDepth > 0) {
+                const delta = -currentDepth;
+                movedNodes.forEach((node) => {
+                    const nodeDepth = parseInt(node.dataset.depth, 10);
+                    const newDepth = Math.max(0, nodeDepth + delta);
+                    setDepth(node, newDepth);
+                });
+            }
+
             menuList.prepend(li, ...subtree);
             pushHistory();
         });
 
         li.querySelector('.btn-to-bottom').addEventListener('click', () => {
             const subtree = getSubtree(li);
+            const movedNodes = [li, ...subtree];
+
+            // Determine the previous item after the move (i.e., the last item
+            // that is not part of the moved block).
+            const allItems = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+            const movingSet = new Set(movedNodes);
+            const remainingItems = allItems.filter((item) => !movingSet.has(item));
+            const prevItem = remainingItems.length > 0 ? remainingItems[remainingItems.length - 1] : null;
+
+            if (prevItem) {
+                const allowedDepth = parseInt(prevItem.dataset.depth, 10) + 1;
+                const currentDepth = parseInt(li.dataset.depth, 10);
+
+                // Clamp the moved root (and its subtree) so that root depth
+                // is not deeper than prevItem.depth + 1.
+                if (currentDepth > allowedDepth) {
+                    const delta = allowedDepth - currentDepth;
+                    movedNodes.forEach((node) => {
+                        const nodeDepth = parseInt(node.dataset.depth, 10);
+                        const newDepth = Math.max(0, nodeDepth + delta);
+                        setDepth(node, newDepth);
+                    });
+                }
+            } else {
+                // If there is no previous item (the moved block becomes the first),
+                // treat this like "move to top" and clamp root depth to 0.
+                const currentDepth = parseInt(li.dataset.depth, 10);
+                if (currentDepth > 0) {
+                    const delta = -currentDepth;
+                    movedNodes.forEach((node) => {
+                        const nodeDepth = parseInt(node.dataset.depth, 10);
+                        const newDepth = Math.max(0, nodeDepth + delta);
+                        setDepth(node, newDepth);
+                    });
+                }
+            }
+
             menuList.append(li, ...subtree);
             pushHistory();
         });
