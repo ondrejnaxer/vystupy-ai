@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         historyIndex = historyStack.length - 1;
         updateUndoRedoButtons();
+        updateAllQuickNavButtons();
     }
 
     function restoreSnapshot(snapshot) {
@@ -55,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             menuList.appendChild(item);
         });
         updateUndoRedoButtons();
+        updateAllQuickNavButtons();
     }
 
     function updateUndoRedoButtons() {
@@ -132,6 +134,60 @@ document.addEventListener('DOMContentLoaded', () => {
         li.addEventListener('dragstart', handleDragStart);
         li.addEventListener('dragend', handleDragEnd);
 
+        // Dragging is only enabled from the drag handle
+        const dragHandle = li.querySelector('.drag-handle');
+        dragHandle.addEventListener('mousedown', () => {
+            li.draggable = true;
+            document.addEventListener('mouseup', () => { li.draggable = false; }, { once: true });
+        });
+
+        // Setup Quick Navigation
+        li.querySelector('.btn-move-up').addEventListener('click', () => {
+            const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+            const index = items.indexOf(li);
+            if (index === 0) return;
+            const subtree = getSubtree(li);
+            items[index - 1].before(li, ...subtree);
+            pushHistory();
+        });
+
+        li.querySelector('.btn-move-down').addEventListener('click', () => {
+            const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+            const subtree = getSubtree(li);
+            const lastItem = subtree.length > 0 ? subtree[subtree.length - 1] : li;
+            const lastIndex = items.indexOf(lastItem);
+            if (lastIndex === items.length - 1) return;
+            items[lastIndex + 1].after(li, ...subtree);
+            pushHistory();
+        });
+
+        li.querySelector('.btn-increase-level').addEventListener('click', () => {
+            const currentDepth = parseInt(li.dataset.depth);
+            const maxDepth = getMaxDepth(li);
+            if (currentDepth >= maxDepth) return;
+            setDepth(li, currentDepth + 1);
+            pushHistory();
+        });
+
+        li.querySelector('.btn-decrease-level').addEventListener('click', () => {
+            const currentDepth = parseInt(li.dataset.depth);
+            if (currentDepth === 0) return;
+            setDepth(li, currentDepth - 1);
+            pushHistory();
+        });
+
+        li.querySelector('.btn-to-top').addEventListener('click', () => {
+            const subtree = getSubtree(li);
+            menuList.prepend(li, ...subtree);
+            pushHistory();
+        });
+
+        li.querySelector('.btn-to-bottom').addEventListener('click', () => {
+            const subtree = getSubtree(li);
+            menuList.append(li, ...subtree);
+            pushHistory();
+        });
+
         return li;
     }
 
@@ -197,6 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleDragEnd(e) {
         stopAutoScroll();
+        this.draggable = false;
         this.classList.remove('dragging');
         dragSubtree.forEach(child => child.classList.remove('dragging'));
         // dropEffect is 'none' when drag was cancelled (e.g. Escape key or drop outside a valid target)
@@ -286,6 +343,36 @@ document.addEventListener('DOMContentLoaded', () => {
     function setDepth(element, depth) {
         element.dataset.depth = depth;
         element.style.setProperty('--depth', depth);
+    }
+
+    function getMaxDepth(li) {
+        const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+        const index = items.indexOf(li);
+        const prevItem = index > 0 ? items[index - 1] : null;
+        return prevItem ? parseInt(prevItem.dataset.depth) + 1 : 0;
+    }
+
+    function updateQuickNavButtons(li) {
+        const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
+        const index = items.indexOf(li);
+        const subtree = getSubtree(li);
+        const lastSubtreeIndex = subtree.length > 0 ? items.indexOf(subtree[subtree.length - 1]) : index;
+        const depth = parseInt(li.dataset.depth);
+
+        li.querySelector('.btn-move-up').disabled = index === 0;
+        li.querySelector('.btn-to-top').disabled = index === 0;
+        li.querySelector('.btn-move-down').disabled = lastSubtreeIndex === items.length - 1;
+        li.querySelector('.btn-to-bottom').disabled = lastSubtreeIndex === items.length - 1;
+        li.querySelector('.btn-decrease-level').disabled = depth === 0;
+
+        const prevItem = index > 0 ? items[index - 1] : null;
+        li.querySelector('.btn-increase-level').disabled = !prevItem || depth >= getMaxDepth(li);
+    }
+
+    function updateAllQuickNavButtons() {
+        menuList.querySelectorAll('.menu-item:not(.placeholder)').forEach(item => {
+            updateQuickNavButtons(item);
+        });
     }
 
     // --- Data Management ---

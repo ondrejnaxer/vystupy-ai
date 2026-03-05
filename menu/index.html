@@ -23,7 +23,7 @@
     </div>
 
     <template id="menu-item-template">
-        <li class="menu-item" draggable="true" data-depth="0">
+        <li class="menu-item" data-depth="0">
             <div class="item-header">
                 <div class="drag-handle">⠿</div>
                 <span class="item-title-display">New Item</span>
@@ -37,6 +37,14 @@
                 <div class="input-group">
                     <label>URL</label>
                     <input type="text" class="input-url" placeholder="https://...">
+                </div>
+                <div class="item-quick-nav">
+                    <button class="btn-move-up">↑ Move up</button>
+                    <button class="btn-move-down">↓ Move down</button>
+                    <button class="btn-increase-level">→ Increase level</button>
+                    <button class="btn-decrease-level">← Decrease level</button>
+                    <button class="btn-to-top">⇈ To the top</button>
+                    <button class="btn-to-bottom">⇊ To the bottom</button>
                 </div>
                 <button class="btn-remove">Remove Item</button>
             </div>
