@@ -181,6 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
             dragStartCandidate = e.target.closest('.item-header') ? li : null;
         });
 
+        // Fallback for browsers without Pointer Events (e.g., older Safari/WebKit)
+        if (typeof window.PointerEvent === 'undefined') {
+            li.addEventListener('mousedown', (e) => {
+                dragStartCandidate = e.target.closest('.item-header') ? li : null;
+            });
+        }
+
         li.addEventListener('touchstart', (e) => {
             dragStartCandidate = e.target.closest('.item-header') ? li : null;
         }, { passive: true });
