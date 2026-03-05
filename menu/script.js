@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let historyStack = [];
     let historyIndex = -1;
     let savedIndex = -1;
+    let _idCounter = 0;
+    function generateId() {
+        return 'item_' + Date.now() + '_' + (++_idCounter);
+    }
 
     function getSnapshot() {
         const items = [...menuList.querySelectorAll('.menu-item:not(.placeholder)')];
@@ -47,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         historyIndex = historyStack.length - 1;
         updateUndoRedoButtons();
         updateAllQuickNavButtons();
+        updateSaveButton();
     }
 
     function restoreSnapshot(snapshot) {
@@ -57,11 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         updateUndoRedoButtons();
         updateAllQuickNavButtons();
+        updateSaveButton();
     }
 
     function updateUndoRedoButtons() {
         btnUndo.disabled = historyIndex <= 0;
         btnRedo.disabled = historyIndex >= historyStack.length - 1;
+    }
+
+    function updateSaveButton() {
+        btnSave.disabled = (historyIndex === savedIndex);
     }
 
     btnUndo.addEventListener('click', () => {
@@ -89,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI Interactions ---
     btnAdd.addEventListener('click', () => {
-        const id = 'item_' + Date.now();
+        const id = generateId();
         const newItem = createMenuItem(id, 'New Item', '', 0);
         menuList.appendChild(newItem);
         pushHistory();
@@ -130,15 +140,68 @@ document.addEventListener('DOMContentLoaded', () => {
             pushHistory();
         });
 
+        // Setup Duplicate
+        li.querySelector('.btn-duplicate').addEventListener('click', () => {
+            const dupTitle = li.querySelector('.input-title').value;
+            const dupUrl = li.querySelector('.input-url').value;
+            const dupDepth = parseInt(li.dataset.depth, 10);
+            const subtree = getSubtree(li);
+            const newItem = createMenuItem(generateId(), dupTitle, dupUrl, dupDepth);
+
+            const lastItem = subtree.length > 0 ? subtree[subtree.length - 1] : li;
+            lastItem.after(newItem);
+
+            let insertAfter = newItem;
+            subtree.forEach((child) => {
+                const childTitle = child.querySelector('.input-title').value;
+                const childUrl = child.querySelector('.input-url').value;
+                const childDepth = parseInt(child.dataset.depth, 10);
+                const newChild = createMenuItem(generateId(), childTitle, childUrl, childDepth);
+                insertAfter.after(newChild);
+                insertAfter = newChild;
+            });
+
+            pushHistory();
+        });
+
         // Setup Drag Events
         li.addEventListener('dragstart', handleDragStart);
         li.addEventListener('dragend', handleDragEnd);
 
-        // Dragging is only enabled from the drag handle
-        const dragHandle = li.querySelector('.drag-handle');
-        dragHandle.addEventListener('mousedown', () => {
-            li.draggable = true;
-            document.addEventListener('mouseup', () => { li.draggable = false; }, { once: true });
+        // Dragging is enabled from anywhere on the item header.
+        // A small movement threshold distinguishes a click (toggle expand)
+        // from a drag (initiate drag-and-drop).
+        const DRAG_THRESHOLD = 5;
+        const itemHeader = li.querySelector('.item-header');
+        itemHeader.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button')) return;
+            const startX = e.clientX;
+            const startY = e.clientY;
+            let draggingStarted = false;
+
+            const onMouseMove = (me) => {
+                const dx = me.clientX - startX;
+                const dy = me.clientY - startY;
+                if (!draggingStarted && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+                    draggingStarted = true;
+                    li.draggable = true;
+                }
+            };
+
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                li.draggable = false;
+                if (!draggingStarted) {
+                    const settings = li.querySelector('.item-settings');
+                    settings.classList.toggle('expanded');
+                    li.querySelector('.btn-expand').textContent =
+                        settings.classList.contains('expanded') ? '▲' : '▼';
+                }
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
         });
 
         // Setup Quick Navigation
@@ -527,6 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localStorage.setItem('customMenuData', JSON.stringify(menuData));
         savedIndex = historyIndex;
+        updateSaveButton();
         
         // Quick visual feedback
         const originalText = btnSave.textContent;
@@ -553,5 +617,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         pushHistory();
         savedIndex = historyIndex; // Loaded state matches what's in localStorage
+        updateSaveButton();
     }
 });

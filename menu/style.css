@@ -88,6 +88,8 @@ body {
     padding: 0.75rem 1rem;
     background: #f8fafc;
     border-radius: 6px;
+    cursor: grab;
+    user-select: none;
 }
 
 .drag-handle {
@@ -138,6 +140,17 @@ body {
     font-size: 0.875rem;
 }
 .btn-remove:hover { text-decoration: underline; }
+
+.btn-duplicate {
+    color: var(--primary-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 1rem;
+    font-size: 0.875rem;
+}
+.btn-duplicate:hover { text-decoration: underline; }
 
 .item-quick-nav {
     display: flex;
