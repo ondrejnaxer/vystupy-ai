@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let autoScrollRAF = null;
     let lastDragY = 0;
     let isDragging = false;
+    let dragStartCandidate = null;
 
     // --- Undo/Redo History ---
     const MAX_HISTORY = 50;
@@ -123,12 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
         li.dataset.id = id;
         setDepth(li, depth);
         li.draggable = true;
-        li.addEventListener('dragstart', (e) => {
-            // Only allow drag to start from within the item header / drag handle
-            if (!e.target.closest('.item-header')) {
-                e.preventDefault();
-            }
-        }, true);
         
         li.querySelector('.item-title-display').textContent = title;
         li.querySelector('.input-title').value = title;
@@ -182,6 +177,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Setup Drag Events
+        li.addEventListener('pointerdown', (e) => {
+            dragStartCandidate = e.target.closest('.item-header') ? li : null;
+        });
+
+        li.addEventListener('touchstart', (e) => {
+            dragStartCandidate = e.target.closest('.item-header') ? li : null;
+        }, { passive: true });
+
         li.addEventListener('dragstart', handleDragStart);
         li.addEventListener('dragend', handleDragEnd);
 
@@ -411,6 +414,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDragStart(e) {
+        if (dragStartCandidate !== this) {
+            e.preventDefault();
+            return;
+        }
+
         draggedItem = this;
         isDragging = true;
         dragSubtree = getSubtree(this);
@@ -428,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ensure data transfer exists for Firefox compatibility
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', ''); 
+        dragStartCandidate = null;
     }
 
     function handleDragEnd(e) {
@@ -461,11 +470,21 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedItem = null;
         placeholder = null;
         dragSubtree = [];
+        dragStartCandidate = null;
         setTimeout(() => { isDragging = false; }, 0);
     }
 
+    menuList.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+    });
+
+    menuList.addEventListener('drop', (e) => {
+        e.preventDefault();
+    });
+
     menuList.addEventListener('dragover', (e) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         if (!draggedItem || !placeholder) return;
 
         lastDragY = e.clientY;
