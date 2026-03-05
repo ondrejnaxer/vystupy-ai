@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Vanilla Menu Editor</title>
+    <title>Editor menu</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="menu-editor">
         <header class="top-bar">
-            <h2>Navigation Editor</h2>
+            <h2>Editor navigace</h2>
             <div class="actions">
-                <button id="btn-undo" type="button" class="btn btn-secondary" disabled title="Undo" aria-label="Undo">↩</button>
-                <button id="btn-redo" type="button" class="btn btn-secondary" disabled title="Redo" aria-label="Redo">↪</button>
-                <button id="btn-add" class="btn btn-primary">+ Add New Item</button>
-                <button id="btn-save" class="btn btn-success" disabled>Save Menu</button>
+                <button id="btn-undo" type="button" class="btn btn-secondary" disabled title="Zpět" aria-label="Zpět">↩</button>
+                <button id="btn-redo" type="button" class="btn btn-secondary" disabled title="Znovu" aria-label="Znovu">↪</button>
+                <button id="btn-add" class="btn btn-primary">+ Přidat položku</button>
+                <button id="btn-save" class="btn btn-success" disabled>Uložit menu</button>
             </div>
         </header>
 
@@ -26,28 +26,28 @@
         <li class="menu-item" data-depth="0">
             <div class="item-header">
                 <div class="drag-handle">⠿</div>
-                <span class="item-title-display">New Item</span>
+                <span class="item-title-display">Nová položka</span>
                 <button class="btn-expand">▼</button>
             </div>
             <div class="item-settings">
                 <div class="input-group">
-                    <label>Navigation Label</label>
-                    <input type="text" class="input-title" value="New Item">
+                    <label>Název v navigaci</label>
+                    <input type="text" class="input-title" value="Nová položka">
                 </div>
                 <div class="input-group">
                     <label>URL</label>
                     <input type="text" class="input-url" placeholder="https://...">
                 </div>
                 <div class="item-quick-nav">
-                    <button class="btn-move-up">↑ Move up</button>
-                    <button class="btn-move-down">↓ Move down</button>
-                    <button class="btn-increase-level">→ Increase level</button>
-                    <button class="btn-decrease-level">← Decrease level</button>
-                    <button class="btn-to-top">⇈ To the top</button>
-                    <button class="btn-to-bottom">⇊ To the bottom</button>
+                    <button class="btn-move-up">↑ Posunout výš</button>
+                    <button class="btn-move-down">↓ Posunout níž</button>
+                    <button class="btn-increase-level">→ Zanořit pod předchozí</button>
+                    <button class="btn-decrease-level">← Posunout o úroveň výš</button>
+                    <button class="btn-to-top">⇈ Přesunout na začátek</button>
+                    <button class="btn-to-bottom">⇊ Přesunout na konec</button>
                 </div>
-                <button class="btn-remove">Remove Item</button>
-                <button class="btn-duplicate">Duplicate Item</button>
+                <button class="btn-remove">Smazat položku</button>
+                <button class="btn-duplicate">Duplikovat položku</button>
             </div>
         </li>
     </template>
