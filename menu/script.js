@@ -169,6 +169,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             items[index - 1].before(li, ...subtree);
+
+            // After the move, the displaced item (formerly items[index-1]) now
+            // follows the moved block. Clamp it and its subtree so that
+            // depth <= newPrevItem.depth + 1 (where newPrevItem is now the last
+            // node of the moved block).
+            const lastMovedNode = subtree.length > 0 ? subtree[subtree.length - 1] : li;
+            const lastMovedDepth = parseInt(lastMovedNode.dataset.depth, 10);
+            const displaced = items[index - 1];
+            const displacedDepth = parseInt(displaced.dataset.depth, 10);
+            if (displacedDepth > lastMovedDepth + 1) {
+                const displacedDelta = displacedDepth - (lastMovedDepth + 1);
+                const displacedSubtree = getSubtree(displaced);
+                [displaced, ...displacedSubtree].forEach(node => {
+                    const nodeDepth = parseInt(node.dataset.depth, 10);
+                    setDepth(node, Math.max(0, nodeDepth - displacedDelta));
+                });
+            }
+
             pushHistory();
         });
 
@@ -179,7 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const lastIndex = items.indexOf(lastItem);
             if (lastIndex === items.length - 1) return;
             const newPrevItem = items[lastIndex + 1];
-            newPrevItem.after(li, ...subtree);
+            // Move after the entire newPrevItem subtree to avoid splitting it
+            const newPrevSubtree = getSubtree(newPrevItem);
+            const newPrevBlockLast = newPrevSubtree.length > 0 ? newPrevSubtree[newPrevSubtree.length - 1] : newPrevItem;
+            newPrevBlockLast.after(li, ...subtree);
             const newPrevDepth = parseInt(newPrevItem.dataset.depth, 10);
             const currentDepth = parseInt(li.dataset.depth, 10);
             const maxAllowedDepth = newPrevDepth + 1;
@@ -203,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemsToUpdate = [li, ...subtree];
             itemsToUpdate.forEach((item) => {
                 const itemDepth = parseInt(item.dataset.depth, 10);
-                setDepth(item, itemDepth + depthDelta);
+                setDepth(item, Math.max(0, itemDepth + depthDelta));
             });
             pushHistory();
         });
@@ -216,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemsToUpdate = [li, ...subtree];
             itemsToUpdate.forEach((item) => {
                 const itemDepth = parseInt(item.dataset.depth, 10);
-                setDepth(item, itemDepth + depthDelta);
+                setDepth(item, Math.max(0, itemDepth + depthDelta));
             });
             pushHistory();
         });
