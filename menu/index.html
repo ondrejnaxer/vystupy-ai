@@ -9,12 +9,12 @@
 <body>
     <div class="menu-editor">
         <header class="top-bar">
-            <h2>Editor navigace</h2>
+            <h2>Editor menu</h2>
             <div class="actions">
                 <button id="btn-undo" type="button" class="btn btn-secondary" disabled title="Zpět" aria-label="Zpět">↩</button>
                 <button id="btn-redo" type="button" class="btn btn-secondary" disabled title="Znovu" aria-label="Znovu">↪</button>
                 <button id="btn-add" class="btn btn-primary">+ Přidat položku</button>
-                <button id="btn-save" class="btn btn-success" disabled>Uložit menu</button>
+                <button id="btn-save" class="btn btn-success" disabled>Uložit</button>
             </div>
         </header>
 
@@ -31,7 +31,7 @@
             </div>
             <div class="item-settings">
                 <div class="input-group">
-                    <label>Název v navigaci</label>
+                    <label>Název</label>
                     <input type="text" class="input-title" value="Nová položka">
                 </div>
                 <div class="input-group">
@@ -39,15 +39,15 @@
                     <input type="text" class="input-url" placeholder="https://...">
                 </div>
                 <div class="item-quick-nav">
-                    <button class="btn-move-up">↑ Posunout výš</button>
-                    <button class="btn-move-down">↓ Posunout níž</button>
-                    <button class="btn-increase-level">→ Zanořit pod předchozí</button>
-                    <button class="btn-decrease-level">← Posunout o úroveň výš</button>
+                    <button class="btn-move-up">↑ Posunout nahoru</button>
+                    <button class="btn-move-down">↓ Posunout dolů</button>
+                    <button class="btn-increase-level">→ O úroveň níže</button>
+                    <button class="btn-decrease-level">← O úroveň výše</button>
                     <button class="btn-to-top">⇈ Přesunout na začátek</button>
                     <button class="btn-to-bottom">⇊ Přesunout na konec</button>
                 </div>
-                <button class="btn-remove">Smazat položku</button>
-                <button class="btn-duplicate">Duplikovat položku</button>
+                <button class="btn-remove">Smazat</button>
+                <button class="btn-duplicate">Duplikovat</button>
             </div>
         </li>
     </template>
