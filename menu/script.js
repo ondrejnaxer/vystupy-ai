@@ -148,14 +148,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (index === 0) return;
 
             const subtree = getSubtree(li);
+            const currentDepth = parseInt(li.dataset.depth, 10);
 
-            // Determine the new previous item after moving up
-            const newPrevItem = index > 1 ? items[index - 2] : null;
+            // Walk backwards from items[index-1] to find the start of the
+            // preceding sibling block (first item whose depth <= li.depth).
+            // This prevents splitting an existing subtree.
+            let blockStartIndex = index - 1;
+            while (blockStartIndex > 0 && parseInt(items[blockStartIndex].dataset.depth, 10) > currentDepth) {
+                blockStartIndex--;
+            }
+
+            // The item immediately before blockStart becomes the new previous
+            // item for depth-clamping purposes.
+            const newPrevItem = blockStartIndex > 0 ? items[blockStartIndex - 1] : null;
             const allowedDepth = newPrevItem
                 ? parseInt(newPrevItem.dataset.depth, 10) + 1
                 : 0;
-
-            const currentDepth = parseInt(li.dataset.depth, 10);
 
             // Clamp the depth of the moved item and its subtree so that
             // depth <= newPrevItem.depth + 1 (or 0 if moved to the top)
@@ -168,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            items[index - 1].before(li, ...subtree);
+            items[blockStartIndex].before(li, ...subtree);
 
             // After the move, the displaced item (formerly items[index-1]) now
             // follows the moved block. Clamp it and its subtree so that
