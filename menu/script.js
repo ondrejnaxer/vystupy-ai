@@ -9,13 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const INDENT_SIZE = 40; // Must match CSS --indent-size
     const SCROLL_THRESHOLD = 60; // px from viewport edge to trigger auto-scroll
     const SCROLL_SPEED = 8;      // px per animation frame
-    const DRAG_THRESHOLD = 5;    // px of movement before a mousedown becomes a drag
-
     let draggedItem = null;
     let placeholder = null;
     let dragSubtree = []; // descendants of the dragged item
     let autoScrollRAF = null;
     let lastDragY = 0;
+    let isDragging = false;
 
     // --- Undo/Redo History ---
     const MAX_HISTORY = 50;
@@ -72,7 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSaveButton() {
-        btnSave.disabled = (historyIndex === savedIndex);
+        if (savedIndex < 0 || savedIndex >= historyStack.length) {
+            btnSave.disabled = false;
+            return;
+        }
+        const currentSnapshot = historyStack[historyIndex];
+        const savedSnapshot = historyStack[savedIndex];
+        btnSave.disabled = (JSON.stringify(currentSnapshot) === JSON.stringify(savedSnapshot));
     }
 
     btnUndo.addEventListener('click', () => {
@@ -114,6 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         li.dataset.id = id;
         setDepth(li, depth);
+        li.draggable = true;
         
         li.querySelector('.item-title-display').textContent = title;
         li.querySelector('.input-title').value = title;
@@ -169,40 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
         li.addEventListener('dragstart', handleDragStart);
         li.addEventListener('dragend', handleDragEnd);
 
-        // Dragging is enabled from anywhere on the item header.
-        // A small movement threshold distinguishes a click (toggle expand)
-        // from a drag (initiate drag-and-drop).
+        // Click on the header toggles the accordion (but not during/after a drag)
         const itemHeader = li.querySelector('.item-header');
-        itemHeader.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return;
+        itemHeader.addEventListener('click', (e) => {
             if (e.target.closest('button')) return;
-            const startX = e.clientX;
-            const startY = e.clientY;
-            let draggingStarted = false;
-
-            const onMouseMove = (me) => {
-                const dx = me.clientX - startX;
-                const dy = me.clientY - startY;
-                if (!draggingStarted && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
-                    draggingStarted = true;
-                    li.draggable = true;
-                }
-            };
-
-            const onMouseUp = () => {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                li.draggable = false;
-                if (!draggingStarted) {
-                    const settings = li.querySelector('.item-settings');
-                    settings.classList.toggle('expanded');
-                    li.querySelector('.btn-expand').textContent =
-                        settings.classList.contains('expanded') ? '▲' : '▼';
-                }
-            };
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            if (isDragging) return; // suppress toggle if a drag just finished
+            const settings = li.querySelector('.item-settings');
+            settings.classList.toggle('expanded');
+            li.querySelector('.btn-expand').textContent =
+                settings.classList.contains('expanded') ? '▲' : '▼';
         });
 
         // Setup Quick Navigation
@@ -421,6 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleDragStart(e) {
         draggedItem = this;
+        isDragging = true;
         dragSubtree = getSubtree(this);
         setTimeout(() => {
             this.classList.add('dragging');
@@ -440,7 +422,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleDragEnd(e) {
         stopAutoScroll();
-        this.draggable = false;
         this.classList.remove('dragging');
         dragSubtree.forEach(child => child.classList.remove('dragging'));
         // dropEffect is 'none' when drag was cancelled (e.g. Escape key or drop outside a valid target)
@@ -470,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedItem = null;
         placeholder = null;
         dragSubtree = [];
+        setTimeout(() => { isDragging = false; }, 0);
     }
 
     menuList.addEventListener('dragover', (e) => {
