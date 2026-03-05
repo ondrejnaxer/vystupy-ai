@@ -195,11 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
         e.dataTransfer.setData('text/plain', ''); 
     }
 
-    function handleDragEnd() {
+    function handleDragEnd(e) {
         stopAutoScroll();
         this.classList.remove('dragging');
         dragSubtree.forEach(child => child.classList.remove('dragging'));
-        if (placeholder && placeholder.parentNode) {
+        // dropEffect is 'none' when drag was cancelled (e.g. Escape key or drop outside a valid target)
+        const wasCancelled = e.dataTransfer.dropEffect === 'none';
+        if (!wasCancelled && placeholder && placeholder.parentNode) {
             const origDepth = parseInt(draggedItem.dataset.depth);
             const newDepth = parseInt(placeholder.dataset.depth);
             const depthDelta = newDepth - origDepth;
@@ -218,6 +220,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             placeholder.remove();
             pushHistory();
+        } else if (placeholder && placeholder.parentNode) {
+            placeholder.remove();
         }
         draggedItem = null;
         placeholder = null;
@@ -229,7 +233,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!draggedItem || !placeholder) return;
 
         lastDragY = e.clientY;
-        startAutoScroll();
+        if (e.clientY < SCROLL_THRESHOLD || e.clientY > window.innerHeight - SCROLL_THRESHOLD) {
+            startAutoScroll();
+        } else {
+            stopAutoScroll();
+        }
 
         // 1. Vertical Sorting: Find element below cursor
         const afterElement = getDragAfterElement(menuList, e.clientY);
