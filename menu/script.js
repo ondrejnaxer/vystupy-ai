@@ -70,14 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRedo.disabled = historyIndex >= historyStack.length - 1;
     }
 
-    function updateSaveButton() {
+    function isDirty() {
         if (savedIndex < 0 || savedIndex >= historyStack.length) {
-            btnSave.disabled = false;
-            return;
+            return true;
         }
         const currentSnapshot = historyStack[historyIndex];
         const savedSnapshot = historyStack[savedIndex];
-        btnSave.disabled = (JSON.stringify(currentSnapshot) === JSON.stringify(savedSnapshot));
+        return JSON.stringify(currentSnapshot) !== JSON.stringify(savedSnapshot);
+    }
+
+    function updateSaveButton() {
+        btnSave.disabled = !isDirty();
     }
 
     btnUndo.addEventListener('click', () => {
@@ -94,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Unsaved Changes Warning ---
     window.addEventListener('beforeunload', (e) => {
-        if (historyIndex !== savedIndex) {
+        if (isDirty()) {
             e.preventDefault();
             e.returnValue = '';
         }
@@ -120,6 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
         li.dataset.id = id;
         setDepth(li, depth);
         li.draggable = true;
+        li.addEventListener('dragstart', (e) => {
+            // Only allow drag to start from within the item header / drag handle
+            if (!e.target.closest('.item-header')) {
+                e.preventDefault();
+            }
+        }, true);
         
         li.querySelector('.item-title-display').textContent = title;
         li.querySelector('.input-title').value = title;
@@ -127,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Setup Accordion Toggle
         li.querySelector('.btn-expand').addEventListener('click', (e) => {
+            if (isDragging) return;
             const settings = li.querySelector('.item-settings');
             settings.classList.toggle('expanded');
             e.target.textContent = settings.classList.contains('expanded') ? '▲' : '▼';
