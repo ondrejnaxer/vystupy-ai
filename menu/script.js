@@ -33,8 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function pushHistory() {
+        const snapshot = getSnapshot();
+        const current = historyIndex >= 0 ? historyStack[historyIndex] : null;
+        if (current && JSON.stringify(current) === JSON.stringify(snapshot)) {
+            return;
+        }
         historyStack = historyStack.slice(0, historyIndex + 1);
-        historyStack.push(getSnapshot());
+        historyStack.push(snapshot);
         if (historyStack.length > MAX_HISTORY) {
             historyStack.shift();
             if (savedIndex >= 0) savedIndex--;
