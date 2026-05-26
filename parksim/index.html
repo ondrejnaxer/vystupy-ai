@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ParkSim – Parkování s vozíkem</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>ParkSim – 2D simulátor parkování s vozíkem</h1>
+    </header>
+
+    <main class="layout">
+      <section class="sim-wrap">
+        <canvas id="simCanvas" width="1100" height="700" aria-label="Simulace parkoviště"></canvas>
+      </section>
+
+      <aside class="panel">
+        <div class="stats">
+          <h2>Stav soupravy</h2>
+          <p>Rychlost: <strong id="speedVal">0.00 m/s</strong></p>
+          <p>Úhel volantu: <strong id="steerWheelVal">0.0°</strong></p>
+          <p>Úhel předních kol: <strong id="frontWheelVal">0.0°</strong></p>
+          <p>Zalomení soupravy: <strong id="hitchVal">0.0°</strong></p>
+          <p id="jackknifeWarning" class="warning">Pozor: maximální zalomení vozíku</p>
+        </div>
+
+        <div class="controls">
+          <h2>Volant</h2>
+          <div id="steeringWheel" class="steering-wheel" title="Toč myší kruhově kolem středu volantu"><span class="marker" aria-hidden="true"></span></div>
+          <div class="btn-row">
+            <button id="centerWheelBtn" type="button">Vycentrovat volant (Mezerník)</button>
+            <button id="resetBtn" type="button">Reset</button>
+            <button id="clearTraceBtn" type="button">Reset stopy</button>
+          </div>
+        </div>
+
+        <div class="help">
+          <h2>Nápověda</h2>
+          <ul>
+            <li><kbd>W</kbd> akcelerace vpřed</li>
+            <li><kbd>S</kbd> akcelerace vzad</li>
+            <li>Pohybuj myší kruhově kolem středu volantu (bez držení tlačítka)</li>
+            <li><kbd>Mezerník</kbd> vycentruje volant</li>
+            <li><strong>Tip:</strong> při couvání je souprava nestabilní, pracuj s malými korekcemi.</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

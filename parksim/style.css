@@ -1,0 +1,138 @@
+:root {
+  --bg: #1d2228;
+  --panel: #252c35;
+  --text: #e9eef5;
+  --muted: #a3b0c0;
+  --accent: #5cb3ff;
+  --warning: #ffb14f;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+  background: linear-gradient(180deg, #171b20, #1f2630);
+  color: var(--text);
+}
+
+.app {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+h1 { margin: 0.3rem 0 1rem; font-size: 1.5rem; }
+h2 { margin: 0 0 0.6rem; font-size: 1.08rem; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(700px, 1fr) 340px;
+  gap: 1rem;
+}
+
+.sim-wrap {
+  background: #13181d;
+  border: 1px solid #3c4754;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#simCanvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stats, .controls, .help {
+  background: var(--panel);
+  border: 1px solid #3b4654;
+  border-radius: 10px;
+  padding: 0.9rem;
+}
+
+.stats p { margin: 0.35rem 0; color: var(--muted); }
+.stats strong { color: var(--text); }
+.warning {
+  margin-top: 0.8rem;
+  color: transparent;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+.warning.active { color: var(--warning); }
+
+.steering-wheel {
+  margin: 0.2rem auto 1rem;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  border: 12px solid #0f141a;
+  background: radial-gradient(circle at 50% 50%, #7f90a3 0 10%, #2f3a47 11% 60%, #1c242d 61%);
+  box-shadow: inset 0 0 0 6px #506074;
+  position: relative;
+  transform: rotate(0deg);
+  cursor: grab;
+}
+.steering-wheel:active { cursor: grabbing; }
+.steering-wheel::before,
+.steering-wheel::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+/* Hlavní svislý paprsek + střed */
+.steering-wheel::before {
+  width: 16px;
+  height: 152px;
+  background: linear-gradient(180deg, #2a3542, #1f2a36);
+  border-radius: 8px;
+}
+/* Vodorovný paprsek je kratší pro snadné vnímání rotace */
+.steering-wheel::after {
+  width: 128px;
+  height: 14px;
+  background: linear-gradient(90deg, #24303d, #1d2732);
+  border-radius: 8px;
+}
+.steering-wheel .marker {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 18px;
+  height: 28px;
+  transform: translateX(-50%);
+  background: #ffcd57;
+  border-radius: 8px 8px 14px 14px;
+  box-shadow: 0 0 10px rgba(255,205,87,0.35);
+}
+
+.btn-row { display: flex; flex-direction: column; gap: 0.5rem; }
+button {
+  border: 1px solid #546173;
+  background: #2f3946;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  cursor: pointer;
+}
+button:hover { background: #3a4758; }
+
+.help ul { padding-left: 1.2rem; margin: 0.5rem 0 0; color: var(--muted); }
+kbd {
+  background: #131820;
+  border: 1px solid #505f72;
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  color: #d9e8ff;
+}
+
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: 1fr; }
+}
