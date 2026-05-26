@@ -10,7 +10,7 @@ Stačí otevřít soubor `parksim/index.html` v běžném prohlížeči.
 
 - `W` = jízda vpřed
 - `S` = jízda vzad
-- Volant: drž levé tlačítko myši na volantu a toč myší kolem středu
+- Volant: najed myší na volant a pohybuj myší kruhově kolem středu (bez držení tlačítka)
 - `Mezerník` nebo tlačítko **Vycentrovat volant** = návrat volantu do středu
 - **Reset** = výchozí stav soupravy
 - **Reset stopy** = smaže stopu pohybu nápravy vozíku

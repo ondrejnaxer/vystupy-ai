@@ -113,6 +113,8 @@ class Trailer {
     this.maxArticulation = 85 * DEG;
     this.hitLimit = false;
     this.trace = [];
+    this.hitchToBodyGap = 14;
+    this.axleFromFront = this.bodyLength - 16;
   }
 
   attachInitial(car) {
@@ -184,8 +186,11 @@ class Trailer {
     ctx.stroke();
     ctx.restore();
 
-    const centerX = this.axleX + Math.cos(this.heading) * (this.bodyLength * 0.45);
-    const centerY = this.axleY + Math.sin(this.heading) * (this.bodyLength * 0.45);
+    // Tělo vozíku je posunuté dozadu od závěsu, aby vznikla realistická mezera.
+    const frontX = hitch.x - Math.cos(this.heading) * this.hitchToBodyGap;
+    const frontY = hitch.y - Math.sin(this.heading) * this.hitchToBodyGap;
+    const centerX = frontX - Math.cos(this.heading) * (this.bodyLength * 0.5);
+    const centerY = frontY - Math.sin(this.heading) * (this.bodyLength * 0.5);
 
     ctx.save();
     ctx.translate(centerX, centerY);
@@ -277,22 +282,20 @@ class InputController {
     this.backward = false;
     this.wheelDeg = 0;
     this.maxWheelDeg = 540;
-    this.dragging = false;
+    this.tracking = false;
     this.lastMouseAngle = 0;
     this.wheelEl = wheelEl;
 
     window.addEventListener('keydown', (e) => this.onKey(e, true));
     window.addEventListener('keyup', (e) => this.onKey(e, false));
 
-    wheelEl.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
-      this.dragging = true;
+    wheelEl.addEventListener('mouseenter', (e) => {
+      this.tracking = true;
       this.lastMouseAngle = this.pointerAngle(e);
-      e.preventDefault();
     });
 
-    window.addEventListener('mousemove', (e) => {
-      if (!this.dragging) return;
+    wheelEl.addEventListener('mousemove', (e) => {
+      if (!this.tracking) return;
       const cur = this.pointerAngle(e);
       let delta = (cur - this.lastMouseAngle) * RAD;
       if (delta > 180) delta -= 360;
@@ -301,8 +304,7 @@ class InputController {
       this.lastMouseAngle = cur;
     });
 
-    window.addEventListener('mouseup', () => this.dragging = false);
-    wheelEl.addEventListener('mouseleave', () => { if (!this.dragging) return; });
+    wheelEl.addEventListener('mouseleave', () => { this.tracking = false; });
   }
 
   pointerAngle(e) {
